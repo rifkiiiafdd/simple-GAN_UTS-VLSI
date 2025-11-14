@@ -1,0 +1,307 @@
+module gan 
+
+#(parameter WIDTH=8, parameter WIDTH_L1=18,
+    parameter WIDTH_L2=28,
+    parameter WIDTH_L3=37,
+    parameter WIDTH_L4=45
+)
+
+(
+    // input
+    input wire signed [WIDTH-1:0] x_1,
+    input wire signed [WIDTH-1:0] x_2,
+    input wire signed [WIDTH-1:0] x_3,
+    input wire signed [WIDTH-1:0] x_4,
+
+    // layer 1 weights and biases
+    input wire signed [WIDTH-1:0] w1_11,
+    input wire signed [WIDTH-1:0] w1_12,
+    input wire signed [WIDTH-1:0] w1_13,
+    input wire signed [WIDTH-1:0] w1_14,
+
+    input wire signed [WIDTH-1:0] w1_21,
+    input wire signed [WIDTH-1:0] w1_22,
+    input wire signed [WIDTH-1:0] w1_23,
+    input wire signed [WIDTH-1:0] w1_24,
+
+    input wire signed [WIDTH-1:0] w1_31,
+    input wire signed [WIDTH-1:0] w1_32,
+    input wire signed [WIDTH-1:0] w1_33,
+    input wire signed [WIDTH-1:0] w1_34,
+
+    input wire signed [WIDTH-1:0] w1_41,
+    input wire signed [WIDTH-1:0] w1_42,
+    input wire signed [WIDTH-1:0] w1_43,
+    input wire signed [WIDTH-1:0] w1_44,
+
+
+    input wire signed [WIDTH-1:0] b1_1,
+    input wire signed [WIDTH-1:0] b1_2,
+    input wire signed [WIDTH-1:0] b1_3,
+    input wire signed [WIDTH-1:0] b1_4,
+
+    // layer 2 weights and biases
+
+    input wire signed [WIDTH-1:0] w2_11,
+    input wire signed [WIDTH-1:0] w2_12,
+    input wire signed [WIDTH-1:0] w2_13,
+    input wire signed [WIDTH-1:0] w2_14,
+
+    input wire signed [WIDTH-1:0] w2_21,
+    input wire signed [WIDTH-1:0] w2_22,
+    input wire signed [WIDTH-1:0] w2_23,
+    input wire signed [WIDTH-1:0] w2_24,
+
+    input wire signed [WIDTH-1:0] b2_1,
+    input wire signed [WIDTH-1:0] b2_2,
+
+    // layer 3 weights and biases
+    input wire signed [WIDTH-1:0] w3_11,
+    input wire signed [WIDTH-1:0] w3_21,
+
+    input wire signed [WIDTH-1:0] b3_1,
+
+
+    // layer 4 weight and bias
+
+    input wire signed [WIDTH-1:0] w4_11,
+    input wire signed [WIDTH-1:0] b4_1,
+
+    // output
+    output wire signed [WIDTH_L4-1:0] out
+);
+
+    // layer 1
+    wire signed [WIDTH_L1-1:0] l1_1;
+    wire signed [WIDTH_L1-1:0] l1_2;
+    wire signed [WIDTH_L1-1:0] l1_3;
+    wire signed [WIDTH_L1-1:0] l1_4;
+
+    assign l1_1 = x_1*w1_11 + x_2*w1_12 + x_3*w1_13 + x_4*w1_14 + b1_1;
+    assign l1_2 = x_1*w1_21 + x_2*w1_22 + x_3*w1_23 + x_4*w1_24 + b1_2;
+    assign l1_3 = x_1*w1_31 + x_2*w1_32 + x_3*w1_33 + x_4*w1_34 + b1_3;
+    assign l1_4 = x_1*w1_41 + x_2*w1_42 + x_3*w1_43 + x_4*w1_44 + b1_4;
+
+    // layer 2
+
+    wire signed [WIDTH_L2-1:0] l2_1;
+    wire signed [WIDTH_L2-1:0] l2_2;
+
+    assign l2_1 = l1_1*w2_11 + l1_2*w2_12 + l1_3*w2_13 + l1_4*w2_14 + b2_1;
+    assign l2_2 = l1_1*w2_21 + l1_2*w2_22 + l1_3*w2_23 + l1_4*w2_24 + b2_2;
+
+    // layer 3
+    wire signed [WIDTH_L3-1:0] l3_1;
+
+    assign l3_1 = l2_1*w3_11 + l2_2*w3_21 + b3_1;
+
+    // layer 4
+    wire signed [WIDTH_L4-1:0] l4_1;
+
+    assign l4_1 = l3_1*w4_11 + b4_1;
+
+    assign out = (l4_1 > 0) ? l4_1 : {WIDTH_L4{1'b0}};
+
+endmodule
+
+
+`timescale 1ns/1ps
+module gan_tb;
+
+    parameter WIDTH=8;
+    parameter WIDTH_L4=45;
+
+    reg signed [WIDTH-1:0] x_1;
+    reg signed [WIDTH-1:0] x_2;
+    reg signed [WIDTH-1:0] x_3;
+    reg signed [WIDTH-1:0] x_4;
+
+    // layer 1 weights and biases
+    reg signed [WIDTH-1:0] w1_11;
+    reg signed [WIDTH-1:0] w1_12;
+    reg signed [WIDTH-1:0] w1_13;
+    reg signed [WIDTH-1:0] w1_14;
+
+    reg signed [WIDTH-1:0] w1_21;
+    reg signed [WIDTH-1:0] w1_22;
+    reg signed [WIDTH-1:0] w1_23;
+    reg signed [WIDTH-1:0] w1_24;
+
+    reg signed [WIDTH-1:0] w1_31;
+    reg signed [WIDTH-1:0] w1_32;
+    reg signed [WIDTH-1:0] w1_33;
+    reg signed [WIDTH-1:0] w1_34;
+
+    reg signed [WIDTH-1:0] w1_41;
+    reg signed [WIDTH-1:0] w1_42;
+    reg signed [WIDTH-1:0] w1_43;
+    reg signed [WIDTH-1:0] w1_44;
+
+
+    reg signed [WIDTH-1:0] b1_1;
+    reg signed [WIDTH-1:0] b1_2;
+    reg signed [WIDTH-1:0] b1_3;
+    reg signed [WIDTH-1:0] b1_4;
+
+    // layer 2 weights and biases
+
+    reg signed [WIDTH-1:0] w2_11;
+    reg signed [WIDTH-1:0] w2_12;
+    reg signed [WIDTH-1:0] w2_13;
+    reg signed [WIDTH-1:0] w2_14;
+
+    reg signed [WIDTH-1:0] w2_21;
+    reg signed [WIDTH-1:0] w2_22;
+    reg signed [WIDTH-1:0] w2_23;
+    reg signed [WIDTH-1:0] w2_24;
+
+    reg signed [WIDTH-1:0] b2_1;
+    reg signed [WIDTH-1:0] b2_2;
+
+    // layer 3 weights and biases
+    reg signed [WIDTH-1:0] w3_11;
+    reg signed [WIDTH-1:0] w3_21;
+
+    reg signed [WIDTH-1:0] b3_1;
+
+
+    // layer 4 weight and bias
+
+    reg signed [WIDTH-1:0] w4_11;
+    reg signed [WIDTH-1:0] b4_1;
+
+    // output
+    wire signed [WIDTH_L4-1:0] out;
+
+
+    gan #(.WIDTH(WIDTH), .WIDTH_L4(WIDTH_L4)) uut (
+    .x_1(x_1),
+    .x_2(x_2),
+    .x_3(x_3),
+    .x_4(x_4),
+
+    .w1_11(w1_11),
+    .w1_12(w1_12),
+    .w1_13(w1_13),
+    .w1_14(w1_14),
+
+    .w1_21(w1_21),
+    .w1_22(w1_22),
+    .w1_23(w1_23),
+    .w1_24(w1_24),
+
+    .w1_31(w1_31),
+    .w1_32(w1_32),
+    .w1_33(w1_33),
+    .w1_34(w1_34),
+
+    .w1_41(w1_41),
+    .w1_42(w1_42),
+    .w1_43(w1_43),
+    .w1_44(w1_44),
+
+    .b1_1(b1_1),
+    .b1_2(b1_2),
+    .b1_3(b1_3),
+    .b1_4(b1_4),
+
+    .w2_11(w2_11),
+    .w2_12(w2_12),
+    .w2_13(w2_13),
+    .w2_14(w2_14),
+    .w2_21(w2_21),
+
+    .w2_22(w2_22),
+    .w2_23(w2_23),
+    .w2_24(w2_24),
+    
+    .b2_1(b2_1),
+    .b2_2(b2_2),
+    
+    .w3_11(w3_11),
+    .w3_21(w3_21),
+
+    .b3_1(b3_1),
+    
+    .w4_11(w4_11),
+    .b4_1(b4_1),
+    
+    .out(out)
+    );
+
+    initial begin
+        // Initialize inputs
+        $monitor("time=%0t | out=%d", $time, out);
+        
+        x_1 = 8'sd0;
+        x_2 = 8'sd1;
+        x_3 = 8'sd1;
+        x_4 = 8'sd0;
+
+        w1_11 = 8'sd6;
+        w1_12 = 8'sd21;
+        w1_13 = 8'sd3;
+        w1_14 = 8'sd18;
+
+        w1_21 = -8'sd3;
+        w1_22 = 8'sd16;
+        w1_23 = -8'sd3;
+        w1_24 = 8'sd12;
+
+        w1_31 = 8'sd5;
+        w1_32 = -8'sd6;
+        w1_33 = -8'sd15;
+        w1_34 = -8'sd4;
+
+        w1_41 = -8'sd16;
+        w1_42 = -8'sd9;
+        w1_43 = -8'sd17;
+        w1_44 = -8'sd8;
+
+        b1_1 = 8'sd1;
+        b1_2 = 8'sd0;
+        b1_3 = 8'sd2;
+        b1_4 = -8'sd1;
+
+        w2_11 = 8'sd4;
+        w2_12 = 8'sd14;
+        w2_13 = 8'sd8;
+        w2_14 = 8'sd15;
+
+        w2_21 = -8'sd14;
+        w2_22 = 8'sd14;
+        w2_23 = 8'sd9;
+        w2_24 = 8'sd15;
+
+        b2_1 = 8'sd1;
+        b2_2 = 8'sd4;
+
+        w3_11 = 8'sd14;
+        w3_21 = 8'sd6;
+
+        b3_1 = 8'sd5;
+
+        w4_11 = 8'sd1;
+        b4_1 = -8'sd4;
+
+        #10; // Wait for some time to observe output
+
+        $display("L1_1: %d", uut.l1_1);
+        $display("L1_2: %d", uut.l1_2);
+        $display("L1_3: %d", uut.l1_3);
+        $display("L1_4: %d", uut.l1_4);
+
+        $display("L2_1: %d", uut.l2_1);
+        $display("L2_2: %d", uut.l2_2);
+
+        $display("L3_1: %d", uut.l3_1);
+        $display("L4_1: %d", uut.l4_1);
+        $display("Output: %d", out);
+        
+
+        $finish; // End simulation
+    end
+
+endmodule
+
+
